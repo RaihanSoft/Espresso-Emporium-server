@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
@@ -50,9 +50,52 @@ async function run() {
         })
 
 
+        // delete operation 
+        app.delete('/coffee/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await coffeeCollection.deleteOne(query)
+            res.send(result)
 
 
+        })
 
+        // load of find 
+        app.get('/coffee/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await coffeeCollection.findOne(query)
+            res.send(result)
+        })
+
+
+        // Corrected server-side code
+        app.put('/coffee/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+                const filter = { _id: new ObjectId(id) };
+                const options = { upsert: true }; // <-- Fixed typo: ture => true
+                const updateCoffee = req.body;
+
+                const coffee = {
+                    $set: {
+                        photo: updateCoffee.photo,
+                        name: updateCoffee.name,
+                        details: updateCoffee.details,
+                        category: updateCoffee.category,
+                        taste: updateCoffee.taste,
+                        supplier: updateCoffee.supplier,
+                        chef: updateCoffee.chef,
+                    },
+                };
+
+                const result = await coffeeCollection.updateOne(filter, coffee, options);
+                res.send(result);
+            } catch (error) {
+                console.error("Error updating coffee:", error); // <-- Error logging
+                res.status(500).send({ message: "Server error" });
+            }
+        });
 
 
 
